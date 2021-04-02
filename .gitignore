@@ -26,6 +26,8 @@
 ios/UnityLibrary
 unity/
 
+lib/api.dart
+
 # Flutter repo-specific
 /bin/cache/
 /bin/internal/bootstrap.bat
