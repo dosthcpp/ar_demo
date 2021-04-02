@@ -21,43 +21,75 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      body: SafeArea(
-        bottom: false,
-        child: WillPopScope(
-          onWillPop: () async => false,
-          child: Stack(
-            children: [
-              Container(
-                child: UnityWidget(
-                  onUnityCreated: onUnityCreated,
+      body: Builder(
+        builder: (context) => SafeArea(
+          bottom: false,
+          child: WillPopScope(
+            onWillPop: () async => false,
+            child: Stack(
+              children: [
+                Container(
+                  child: UnityWidget(
+                    onUnityCreated: onUnityCreated,
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _unityWidgetController.postMessage(
-                        "AR Session Origin", "DoSomething", "hide");
-                  },
-                  backgroundColor: Colors.blue,
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  child: FloatingActionButton(
+                    onPressed: () {
+                      Scaffold.of(context).showBottomSheet<void>(
+                            (BuildContext context) {
+                          return Container(
+                            height: 200,
+                            color: Colors.white,
+                            child: Center(
+                              child: CustomScrollView(
+                                slivers: [
+                                  Container(
+                                    child: SliverGrid(
+                                      gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 5,
+                                        childAspectRatio: 1.0,
+                                        mainAxisSpacing: 10.0,
+                                        crossAxisSpacing: 10.0,
+                                      ),
+                                      delegate: SliverChildBuilderDelegate(
+                                            (context, index) {
+                                          return InkWell(
+                                            child: Image.asset(
+                                              'assets/tree${index + 1}.png',
+                                            ),
+                                            onTap: () {
+                                              _unityWidgetController
+                                                  .postMessage(
+                                                "CubeRespawner",
+                                                "ChangeRespawnTarget",
+                                                "$index",
+                                              );
+                                            },
+                                          );
+                                        },
+                                        childCount: 9,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    backgroundColor: Colors.blue,
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: FloatingActionButton(
-                  onPressed: () {
-                    _unityWidgetController.postMessage(
-                        "AR Session Origin", "DoSomething", "show");
-                  },
-                  backgroundColor: Colors.red,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+      )
     );
   }
 
