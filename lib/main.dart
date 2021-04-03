@@ -186,6 +186,7 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                   children: [
                     UnityWidget(
                       onUnityCreated: onUnityCreated,
+                      onUnityMessage: onUnityMessage,
                     ),
                     Positioned(
                       bottom: 0,
@@ -244,7 +245,13 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                       right: 0,
                       child: FloatingActionButton(
                         onPressed: () async {
-                          await identify();
+                          // await identify();
+                          _unityWidgetController
+                              .postMessage(
+                            "AR Session Origin",
+                            "TakeScreenShot",
+                            "",
+                          );
                         },
                         backgroundColor: Colors.blue,
                       ),
@@ -260,5 +267,9 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
   // Callback that connects the created controller to the unity controller
   void onUnityCreated(controller) {
     this._unityWidgetController = controller;
+  }
+
+  void onUnityMessage(message) {
+    print('Received message from unity: ${message.toString()}');
   }
 }
