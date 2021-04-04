@@ -1,20 +1,28 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'dart:io' show File;
+import 'dart:io' show File, Directory;
 
-import 'package:ar_demo/components/CustomDialogBox.dart';
-import 'package:flutter_html/flutter_html.dart';
-
-import 'package:ar_demo/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
+import 'package:ar_demo/api.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_unity_widget/flutter_unity_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml2json/xml2json.dart';
+import 'package:path_provider/path_provider.dart' as pp;
 
-void main() {
+const kMainColor = 0xff62b27c;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MaterialApp(home: UnityDemoScreen()));
 }
 
@@ -49,6 +57,8 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
   List<String> treeExplanation = [];
   String imageData = '';
   int curIdx = 0;
+  int flag = 0;
+  int recognizeTree = 0, readQR = 1;
 
   @override
   void initState() {
@@ -57,6 +67,10 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
 
   void loadDic() async {
     treeDict = (await rootBundle.loadString('assets/treename.txt')).split('\n');
+  }
+
+  Future<void> setFlag(_flag) async {
+    flag = _flag;
   }
 
   Future<Uint8List> captureImage() async {
@@ -87,8 +101,33 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                   ),
                   Positioned(
                     bottom: 0,
-                    left: 0,
+                    right: 0,
                     child: FloatingActionButton(
+                      onPressed: () async {
+                        setFlag(recognizeTree).then((_) {
+                          _unityWidgetController.postMessage(
+                            "AR Session Origin",
+                            "sendImage",
+                            "",
+                          );
+                        });
+                        // await identify();
+                      },
+                      backgroundColor: Color(kMainColor),
+                      child: Image.asset(
+                        'assets/treeicon.png',
+                        width: 30.0,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 60.0,
+                    child: FloatingActionButton(
+                      child: Image.asset(
+                        'assets/select.png',
+                        width: 30.0,
+                      ),
                       onPressed: () {
                         Scaffold.of(context).showBottomSheet<void>(
                           (BuildContext context) {
@@ -98,6 +137,26 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                               child: Center(
                                 child: CustomScrollView(
                                   slivers: [
+                                    SliverToBoxAdapter(
+                                      child: Align(
+                                        child: InkWell(
+                                          child: Container(
+                                            child: Icon(
+                                              Icons.close,
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                        alignment: Alignment.centerRight,
+                                      ),
+                                    ),
+                                    SliverToBoxAdapter(
+                                      child: SizedBox(
+                                        height: 10.0,
+                                      )
+                                    ),
                                     Container(
                                       child: SliverGrid(
                                         gridDelegate:
@@ -116,7 +175,7 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                                               onTap: () {
                                                 _unityWidgetController
                                                     .postMessage(
-                                                  "CubeRespawner",
+                                                  "Respawner",
                                                   "ChangeRespawnTarget",
                                                   "$index",
                                                 );
@@ -134,22 +193,27 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
                           },
                         );
                       },
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color(kMainColor),
                     ),
                   ),
                   Positioned(
                     bottom: 0,
-                    right: 0,
+                    right: 120.0,
                     child: FloatingActionButton(
                       onPressed: () async {
-                        _unityWidgetController.postMessage(
-                          "AR Session Origin",
-                          "sendImage",
-                          "",
-                        );
-                        // await identify();
+                        setFlag(readQR).then((_) {
+                          _unityWidgetController.postMessage(
+                            "AR Session Origin",
+                            "sendImage",
+                            "",
+                          );
+                        });
                       },
-                      backgroundColor: Colors.blue,
+                      backgroundColor: Color(kMainColor),
+                      child: Image.asset(
+                        'assets/qr-code.png',
+                        width: 30.0,
+                      ),
                     ),
                   ),
                   Positioned.fill(
@@ -327,133 +391,171 @@ class _UnityDemoScreenState extends State<UnityDemoScreen> {
   }
 
   void onUnityMessage(message) async {
-    setState(() {
-      isTreeNameLoading = true;
-    });
-    final names = await search(message);
-    final explanations = await postSearch(names);
-    if (names.length > 0 && explanations.length > 0) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    20.0,
+    if(flag == recognizeTree) {
+      setState(() {
+        isTreeNameLoading = true;
+      });
+      final names = await search(message);
+      final explanations = await postSearch(names);
+      if (names.length > 0 && explanations.length > 0) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      20.0,
+                    ),
                   ),
-                ),
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, idx) {
-                    return Offstage(
-                      offstage: curIdx != idx,
-                      child: TickerMode(
-                        enabled: curIdx == idx,
-                        child: Container(
-                          height: MediaQuery.of(context).size.height / 10 * 6.5,
-                          padding: EdgeInsets.all(
-                            20.0,
-                          ),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemBuilder: (context, idx) {
+                      return Offstage(
+                        offstage: curIdx != idx,
+                        child: TickerMode(
+                          enabled: curIdx == idx,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height / 10 * 6.5,
+                            padding: EdgeInsets.all(
                               20.0,
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.5),
-                                offset: Offset(0, 5),
-                                blurRadius: 5,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(
+                                20.0,
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        if (curIdx > 0) {
-                                          setState(() {
-                                            curIdx--;
-                                          });
-                                        }
-                                      },
-                                      child: Icon(
-                                        Icons.arrow_back,
-                                      ),
-                                    ),
-                                    Text(
-                                      names[idx],
-                                      style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        if (curIdx < names.length - 1) {
-                                          setState(() {
-                                            curIdx++;
-                                          });
-                                        }
-                                      },
-                                      child: Icon(
-                                        Icons.arrow_forward,
-                                      ),
-                                    ),
-                                  ],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: Offset(0, 5),
+                                  blurRadius: 5,
                                 ),
-                              ),
-                              Expanded(
-                                flex: 10,
-                                child: SingleChildScrollView(
-                                  child: Html(
-                                    data: explanations[idx],
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          if (curIdx > 0) {
+                                            setState(() {
+                                              curIdx--;
+                                            });
+                                          }
+                                        },
+                                        child: Icon(
+                                          Icons.arrow_back,
+                                        ),
+                                      ),
+                                      Text(
+                                        names[idx],
+                                        style: TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          if (curIdx < names.length - 1) {
+                                            setState(() {
+                                              curIdx++;
+                                            });
+                                          }
+                                        },
+                                        child: Icon(
+                                          Icons.arrow_forward,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text(
-                                      "확인",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
+                                Expanded(
+                                  flex: 10,
+                                  child: SingleChildScrollView(
+                                    child: Html(
+                                      data: explanations[idx],
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                        "확인",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                  itemCount: names.length,
-                ),
-              );
-            },
-          );
-        },
-      );
+                      );
+                    },
+                    itemCount: names.length,
+                  ),
+                );
+              },
+            );
+          },
+        );
+      }
+      setState(() {
+        isTreeNameLoading = false;
+      });
+    } else if(flag == readQR) {
+      try {
+        final Directory directory = await pp.getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/temp.jpg');
+        final decodedBytes = base64Decode(message.toString());
+        file.writeAsBytesSync(decodedBytes);
+        final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFile(file);
+        final _vision = FirebaseVision.instance;
+        final BarcodeDetector barcodeDetector = _vision.barcodeDetector();
+        final List<Barcode> barcodes = await barcodeDetector.detectInImage(visionImage);
+        for (Barcode barcode in barcodes) {
+
+          final String rawValue = barcode.rawValue;
+
+          final BarcodeValueType valueType = barcode.valueType;
+
+          // See API reference for complete list of supported types
+          switch (valueType) {
+            case BarcodeValueType.wifi:
+              final String ssid = barcode.wifi.ssid;
+              final String password = barcode.wifi.password;
+              final BarcodeWiFiEncryptionType type = barcode.wifi.encryptionType;
+              print("$ssid, $password, $type");
+              break;
+            case BarcodeValueType.url:
+              final String title = barcode.url.title;
+              final String url = barcode.url.url;
+              print("$title $url");
+              break;
+            default:
+              break;
+          }
+        }
+      } catch(e) {
+        print(e);
+      }
     }
-    setState(() {
-      isTreeNameLoading = false;
-    });
   }
 }

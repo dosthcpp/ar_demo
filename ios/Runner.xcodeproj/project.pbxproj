@@ -11,6 +11,7 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		40E1A3824008ACDB27C888B3 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38DB2C9BF9DD10B980C07053 /* Pods_Runner.framework */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		8D5AF8182618A68500C39809 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8D5AF8172618A68400C39809 /* GoogleService-Info.plist */; };
 		8DB0D8E22615A5B6001D171C /* UnityFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DD7C6FF2612D31000C94355 /* UnityFramework.framework */; };
 		8DB0D8E32615A5B6001D171C /* UnityFramework.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8DD7C6FF2612D31000C94355 /* UnityFramework.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8DB0D9302615AFA8001D171C /* flutter_unity_widget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DB0D92F2615AFA8001D171C /* flutter_unity_widget.framework */; };
@@ -44,6 +45,7 @@
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		79876168471F05ED640AC5E1 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		8D5AF8172618A68400C39809 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8DB0D90B2615AA7E001D171C /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		8DB0D92F2615AFA8001D171C /* flutter_unity_widget.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = flutter_unity_widget.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8DD7C6FF2612D31000C94355 /* UnityFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = UnityFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,6 +126,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				8D5AF8172618A68400C39809 /* GoogleService-Info.plist */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -151,6 +154,7 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				81FE5662A3E17EA86734BCE4 /* [CP] Embed Pods Frameworks */,
 				8DB0D8E42615A5B6001D171C /* Embed Frameworks */,
+				B81B6845C4DB03FB794EA64F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -201,6 +205,7 @@
 			files = (
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
+				8D5AF8182618A68500C39809 /* GoogleService-Info.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
 			);
@@ -275,6 +280,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		B81B6845C4DB03FB794EA64F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
